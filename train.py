@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import collections
 
 #import sagemaker_containers
 import torch
@@ -108,9 +109,13 @@ class Dataset(torch.utils.data.Dataset):
 
 # Classifier model
 class SimpleGPT2SequenceClassifier(nn.Module):
-    def __init__(self, hidden_size: int, num_classes:int ,max_seq_len:int, gpt_model_name:str):
+    def __init__(self, hidden_size: int, num_classes:int ,max_seq_len:int, state_dict:collections.OrderedDict):
         super(SimpleGPT2SequenceClassifier,self).__init__()
-        self.gpt2model = GPT2Model.from_pretrained(gpt_model_name)
+
+        config = GPT2Config()
+        model = GPT2Model(config)
+        self.gpt2model = load_weight(model, state_dict)
+        # self.gpt2model = GPT2Model.from_pretrained(gpt_model_name)
         self.fc1 = nn.Linear(hidden_size*max_seq_len, num_classes)
         
     def forward(self, input_id, mask):
@@ -162,7 +167,7 @@ def _get_test_data_loader(batch_size, test_dir, **kwargs):
     return test_dataloader
 
 # train
-def train(args):
+def train(args, _state_dict):
     # set up GPU training (if using GPU)
     use_cuda = args.num_gpus > 0
     logger.debug("Number of gpus available - {}".format(args.num_gpus))
@@ -205,7 +210,7 @@ def train(args):
     )
 
     # initialize model and parameters
-    model = SimpleGPT2SequenceClassifier(hidden_size=args.hidden_size, num_classes=5, max_seq_len=args.max_seq_len, gpt_model_name="gpt2").to(device)
+    model = SimpleGPT2SequenceClassifier(hidden_size=args.hidden_size, num_classes=5, max_seq_len=args.max_seq_len, state_dict=_state_dict).to(device)
     EPOCHS = args.epochs
     LR = args.lr
 
@@ -232,7 +237,7 @@ def train(args):
             
             model.zero_grad()
 
-            output = model(input_id, mask)
+            output = model(input_id, past=mask)
             
             batch_loss = criterion(output, train_label)
             total_loss_train += batch_loss.item()
@@ -279,7 +284,13 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # train(args)
+    if os.path.exists('./model/pytorch_model.bin'):
+        state_dict = torch.load('./model/pytorch_model.bin', map_location='cpu' if not torch.cuda.is_available() else None)
+    else:
+        print('Please download gpt2-pytorch_model.bin')
+        sys.exit()
+    
+    train(args, state_dict)
 
 
 

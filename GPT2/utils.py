@@ -3,9 +3,12 @@
     Original Paper and repository here : https://github.com/openai/gpt-2
     GPT2 Pytorch Model : https://github.com/huggingface/pytorch-pretrained-BERT
 '''
+import sys
 import logging
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 def load_weight(model, state_dict):
     old_keys = []
@@ -46,7 +49,10 @@ def load_weight(model, state_dict):
     if hasattr(model, "transformer") and all(not s.startswith('transformer.') for s in state_dict.keys()):
         start_model = model.transformer
     load(start_model, prefix="")
+    print("missing_keys: {}".format(missing_keys))
+    print("unexpected_keys: {}".format(unexpected_keys))
+    print("error_msgs: {}".format(error_msgs))
 
     # Make sure we are still sharing the output and input embeddings after loading weights
-    model.set_tied()
+    # model.set_tied()
     return model
