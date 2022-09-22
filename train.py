@@ -16,9 +16,9 @@ from torch.optim import Adam
 from transformers import GPT2Tokenizer
 from tqdm import tqdm
 
-from GPT2.model import GPT2Model
+from GPT2.transformer_model import GPT2Model
 from GPT2.utils import load_weight
-from GPT2.config import GPT2Config
+from transformers import GPT2Config
 from GPT2.sample import sample_sequence
 from GPT2.encoder import get_encoder
 
@@ -114,15 +114,21 @@ class SimpleGPT2SequenceClassifier(nn.Module):
 
         config = GPT2Config()
         model = GPT2Model(config)
-        self.gpt2model = load_weight(model, state_dict)
-        # self.gpt2model = GPT2Model.from_pretrained(gpt_model_name)
+        # self.gpt2model = model
+        # self.gpt2model = load_weight(model, state_dict)
+        self.gpt2model = GPT2Model.from_pretrained("gpt2")
+
+        # print(self.gpt2model)
+        
         self.fc1 = nn.Linear(hidden_size*max_seq_len, num_classes)
         
-    def forward(self, input_id, mask):
+    def forward(self, input_id, mask=None):
         """
         Args:
                 input_id: encoded inputs ids of sent.
+                mask: mask of the input_id, we set it with all 1.
         """
+        mask = torch.ones(input_id.shape[0], 1, input_id.shape[1]).to(input_id.device)
         gpt_out, _ = self.gpt2model(input_ids=input_id, attention_mask=mask, return_dict=False)
         batch_size = gpt_out.shape[0]
         linear_output = self.fc1(gpt_out.view(batch_size,-1))
@@ -234,10 +240,11 @@ def train(args, _state_dict):
             train_label = train_label.to(device)
             mask = train_input['attention_mask'].to(device)
             input_id = train_input["input_ids"].squeeze(1).to(device)
+            # print(input_id.shape)
             
             model.zero_grad()
 
-            output = model(input_id, past=mask)
+            output = model(input_id)
             
             batch_loss = criterion(output, train_label)
             total_loss_train += batch_loss.item()
@@ -258,7 +265,7 @@ def train(args, _state_dict):
                 mask = val_input['attention_mask'].to(device)
                 input_id = val_input['input_ids'].squeeze(1).to(device)
                 
-                output = model(input_id, mask)
+                output = model(input_id, mask=mask)
                 
                 batch_loss = criterion(output, val_label)
                 total_loss_val += batch_loss.item()

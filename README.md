@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <p align="center">
 <img src="/imgs/2022-01-29-train-and-deploy-fine-tuned-gpt-2-model-using-pytorch-on-amazon-sagemaker-to-classify-news-articles/newspaper.jpg">
 <br>
@@ -333,7 +332,3 @@ All source code can be found in this Github Repo: [https://github.com/haocai1992
 - **Email**: [haocai3@gmail.com](haocai3@gmail.com)
 - **Github**: [https://github.com/haocai1992](https://github.com/haocai1992)
 - **Linkedin**: [https://www.linkedin.com/in/haocai1992/](https://www.linkedin.com/in/haocai1992/)
-=======
-# simple-gpt2-finetuning
-Simple GPT-2 finetuning
->>>>>>> d85f67898a35f9c85fd5eed7ec0a5231edff8973

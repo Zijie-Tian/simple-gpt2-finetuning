@@ -1,0 +1,31 @@
+{
+  "train_batch_size" : 16,
+  "train_micro_batch_size_per_gpu": 2,
+  "steps_per_print": 1,
+
+  "fp16": {
+    "enabled": false,
+    "initial_scale_power": 12
+  },
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 0.001,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-8
+    }
+  },
+  "activation_checkpointing": {
+    "partition_activations": true,
+    "cpu_checkpointing": true,
+    "contiguous_memory_optimization": true,
+    "number_checkpoints": 1,
+    "synchronize_checkpoint_boundary": true,
+    "profile": true
+  },
+
+  "wall_clock_breakdown" : true
+}
