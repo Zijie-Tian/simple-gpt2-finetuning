@@ -1,0 +1,26 @@
+{
+    "os": "Linux-4.15.0-187-generic-x86_64-with-glibc2.17",
+    "python": "3.8.13",
+    "heartbeatAt": "2022-09-29T08:47:25.610246",
+    "startedAt": "2022-09-29T08:47:22.603106",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "gpu_count": 8,
+    "cpu_count": 64,
+    "cuda": null,
+    "args": [
+        "--local_rank=0"
+    ],
+    "state": "running",
+    "program": "./ds_hf_gpt-j-6b.py",
+    "codePath": "ds_hf_gpt-j-6b.py",
+    "git": {
+        "remote": "git@github.com:Zijie-Tian/simple-gpt2-finetuning.git",
+        "commit": "0474ac4698168da44a201d0cc8d6fc1205277ff1"
+    },
+    "email": "tzj21@mails.tsinghua.edu.cn",
+    "root": "/home/tzj/Jupyter/simple-gpt2-finetuning",
+    "host": "stresstest",
+    "username": "tzj",
+    "executable": "/home/tzj/anaconda3/envs/deepspeed/bin/python3.8"
+}

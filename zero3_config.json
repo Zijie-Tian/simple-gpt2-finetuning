@@ -1,0 +1,57 @@
+{
+    "train_batch_size": 32,
+    "fp16": {
+      "enabled": true,
+      "min_loss_scale": 1,
+      "opt_level": "O3"
+    },
+    "zero_optimization": {
+      "stage": 3,
+      "offload_param": {
+        "device": "cpu",
+        "pin_memory": true,
+        "buffer_size": 1.000000e+10, 
+        "max_in_cpu": 1.000000e+10
+      },
+      "offload_optimizer": {
+        "device": "cpu",
+        "pin_memory": true
+      },
+      "stage3_max_live_parameters": 1e5,
+      "stage3_max_reuse_distance": 1e5,
+      "stage3_prefetch_bucket_size": 2e5,
+      "allgather_partitions": true,
+      "allgather_bucket_size": 5e8,
+      "contiguous_gradients": true
+    },
+    "optimizer": {
+      "type": "AdamW",
+      "params": {
+        "lr": 5e-05,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08
+      }
+    },
+    "comms_logger": {
+      "enabled": true,
+      "verbose": false,
+      "prof_all": true,
+      "debug": false
+    },
+    "scheduler": {
+      "type": "WarmupLR",
+      "params": {
+        "warmup_min_lr": 0,
+        "warmup_max_lr": 5e-05,
+        "warmup_num_steps": 10
+      }
+    },
+    "wandb": {
+      "enabled": true,
+      "team": "thu-storage",
+      "project": "deepspeed_bench"
+    }
+  }

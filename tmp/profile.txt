@@ -1,0 +1,821 @@
+
+-------------------------- DeepSpeed Flops Profiler --------------------------
+Profile Summary at step 2:
+Notations:
+data parallel size (dp_size), model parallel size(mp_size),
+number of parameters (params), number of multiply-accumulate operations(MACs),
+number of floating-point operations (flops), floating-point operations per second (FLOPS),
+fwd latency (forward propagation latency), bwd latency (backward propagation latency),
+step (weights update latency), iter latency (sum of fwd, bwd and step latency)
+
+world size:                                                   8       
+data parallel size:                                           8       
+model parallel size:                                          1       
+batch size per GPU:                                           8       
+params per gpu:                                               0       
+params of model = params per GPU * mp_size:                   0       
+fwd MACs per GPU:                                             5106.86 GMACs
+fwd flops per GPU:                                            10214.11 G
+fwd flops of model = fwd flops per GPU * mp_size:             10214.11 G
+fwd latency:                                                  15.5 s  
+fwd FLOPS per GPU = fwd flops per GPU / fwd latency:          658.82 GFLOPS
+bwd latency:                                                  52.04 s 
+bwd FLOPS per GPU = 2 * fwd flops per GPU / bwd latency:      392.51 GFLOPS
+fwd+bwd FLOPS per GPU = 3 * fwd flops per GPU / (fwd+bwd latency):   453.64 GFLOPS
+step latency:                                                 77.23 ms
+iter latency:                                                 67.63 s 
+FLOPS per GPU = 3 * fwd flops per GPU / iter latency:         453.12 GFLOPS
+samples/second:                                               0.95    
+
+----------------------------- Aggregated Profile per GPU -----------------------------
+Top 1 modules in terms of params, MACs or fwd latency at different model depths:
+depth 0:
+    params      - {'SimpleGPT2SequenceClassifier': '0'}
+    MACs        - {'SimpleGPT2SequenceClassifier': '5106.86 GMACs'}
+    fwd latency - {'SimpleGPT2SequenceClassifier': '15.29 s'}
+depth 1:
+    params      - {'GPTNeoXModel': '0'}
+    MACs        - {'GPTNeoXModel': '5106.85 GMACs'}
+    fwd latency - {'GPTNeoXModel': '15.21 s'}
+depth 2:
+    params      - {'Embedding': '0'}
+    MACs        - {'ModuleList': '5106.85 GMACs'}
+    fwd latency - {'ModuleList': '10.54 s'}
+depth 3:
+    params      - {'GPTNeoXLayer': '0'}
+    MACs        - {'GPTNeoXLayer': '5106.85 GMACs'}
+    fwd latency - {'GPTNeoXLayer': '10.54 s'}
+depth 4:
+    params      - {'LayerNorm': '0'}
+    MACs        - {'GPTNeoXMLP': '3401.61 GMACs'}
+    fwd latency - {'GPTNeoXMLP': '6.16 s'}
+
+------------------------------ Detailed Profile per GPU ------------------------------
+Each module profile is listed after its name in the following order: 
+params, percentage of total params, MACs, percentage of total MACs, fwd latency, percentage of total fwd latency, fwd FLOPS
+
+Note: 1. A module can have torch.nn.module or torch.nn.functional to compute logits (e.g. CrossEntropyLoss). They are not counted as submodules, thus not to be printed out. However they make up the difference between a parent's MACs (or latency) and the sum of its submodules'.
+2. Number of floating-point operations is a theoretical estimation, thus FLOPS computed using that could be larger than the maximum system throughput.
+3. The fwd latency listed in the top module's profile is directly captured at the module forward function in PyTorch, thus it's less than the fwd latency shown above which is captured in DeepSpeed.
+
+SimpleGPT2SequenceClassifier(
+  0, 0.00% Params, 5106.86 GMACs, 100.00% MACs, 15.29 s, 100.00% latency, 668.19 GFLOPS, 
+  (gpt2model): GPTNeoXModel(
+    0, 0.00% Params, 5106.85 GMACs, 100.00% MACs, 15.21 s, 99.47% latency, 671.73 GFLOPS, 
+    (embed_in): Embedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 484.23 us, 0.00% latency, 0.0 FLOPS, 50432, 6144)
+    (layers): ModuleList(
+      0, 0.00% Params, 5106.85 GMACs, 100.00% MACs, 10.54 s, 68.95% latency, 969.03 GFLOPS, 
+      (0): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 454.4 ms, 2.97% latency, 510.87 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 529.29 us, 0.00% latency, 7.43 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 367.64 us, 0.00% latency, 10.7 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.63 ms, 0.04% latency, 13.76 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 637.77 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 762.7 us, 0.00% latency, 76.02 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 535.73 us, 0.00% latency, 36.08 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.04 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 800.85 us, 0.01% latency, 96.53 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 723.6 us, 0.00% latency, 106.84 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (1): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 235.03 ms, 1.54% latency, 987.68 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 262.26 us, 0.00% latency, 14.99 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 382.42 us, 0.00% latency, 10.28 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.98 ms, 0.03% latency, 15.56 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 619.65 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 574.11 us, 0.00% latency, 100.99 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 511.17 us, 0.00% latency, 37.81 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.52 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 806.09 us, 0.01% latency, 95.91 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 697.14 us, 0.00% latency, 110.9 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (2): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.63 ms, 1.53% latency, 989.37 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 259.64 us, 0.00% latency, 15.14 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 384.09 us, 0.00% latency, 10.24 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.86 ms, 0.03% latency, 15.94 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 632.76 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 572.92 us, 0.00% latency, 101.2 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 474.21 us, 0.00% latency, 40.76 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.09 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 786.78 us, 0.01% latency, 98.26 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 705.48 us, 0.00% latency, 109.58 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (3): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.5 ms, 1.53% latency, 989.92 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 255.35 us, 0.00% latency, 15.4 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 386.71 us, 0.00% latency, 10.17 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.99 ms, 0.03% latency, 15.53 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 620.37 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 573.64 us, 0.00% latency, 101.08 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 502.82 us, 0.00% latency, 38.44 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 139.77 ms, 0.91% latency, 1.11 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 788.69 us, 0.01% latency, 98.02 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 691.65 us, 0.00% latency, 111.77 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (4): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.5 ms, 1.53% latency, 989.93 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 264.64 us, 0.00% latency, 14.86 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 270.37 us, 0.00% latency, 14.54 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.84 ms, 0.03% latency, 16.01 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 635.86 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 570.06 us, 0.00% latency, 101.71 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 417.95 us, 0.00% latency, 46.24 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.93 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 842.33 us, 0.01% latency, 91.78 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 695.23 us, 0.00% latency, 111.2 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (5): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 235.73 ms, 1.54% latency, 984.77 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 247.48 us, 0.00% latency, 15.89 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 274.42 us, 0.00% latency, 14.33 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.86 ms, 0.03% latency, 15.96 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 621.32 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 652.55 us, 0.00% latency, 88.85 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 438.93 us, 0.00% latency, 44.03 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 144.08 ms, 0.94% latency, 1.07 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 847.82 us, 0.01% latency, 91.19 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 696.9 us, 0.00% latency, 110.93 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (6): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.46 ms, 1.53% latency, 990.09 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 260.83 us, 0.00% latency, 15.08 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 293.02 us, 0.00% latency, 13.42 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.74 ms, 0.03% latency, 16.36 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 611.54 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 567.91 us, 0.00% latency, 102.1 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 398.16 us, 0.00% latency, 48.54 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.03 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 804.42 us, 0.01% latency, 96.11 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 690.22 us, 0.00% latency, 112.01 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (7): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.61 ms, 1.53% latency, 989.45 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 252.72 us, 0.00% latency, 15.56 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 295.16 us, 0.00% latency, 13.32 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.82 ms, 0.03% latency, 16.07 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 614.64 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 673.53 us, 0.00% latency, 86.09 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 395.77 us, 0.00% latency, 48.83 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.47 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 788.45 us, 0.01% latency, 98.05 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 698.57 us, 0.00% latency, 110.67 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (8): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.52 ms, 1.53% latency, 989.83 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 267.74 us, 0.00% latency, 14.69 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 292.06 us, 0.00% latency, 13.46 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.73 ms, 0.03% latency, 16.4 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 607.73 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 571.73 us, 0.00% latency, 101.42 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 404.12 us, 0.00% latency, 47.83 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.04 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 794.65 us, 0.01% latency, 97.29 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 694.27 us, 0.00% latency, 111.35 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (9): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.27 ms, 1.53% latency, 990.89 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 259.4 us, 0.00% latency, 15.16 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 277.28 us, 0.00% latency, 14.18 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.8 ms, 0.03% latency, 16.14 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 629.66 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 691.89 us, 0.00% latency, 83.8 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 412.94 us, 0.00% latency, 46.8 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.85 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 794.89 us, 0.01% latency, 97.26 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 686.17 us, 0.00% latency, 112.67 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (10): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.62 ms, 1.53% latency, 993.64 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 267.74 us, 0.00% latency, 14.69 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 262.5 us, 0.00% latency, 14.98 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.8 ms, 0.03% latency, 16.16 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 601.05 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 567.91 us, 0.00% latency, 102.1 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 422.0 us, 0.00% latency, 45.8 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.75 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 841.62 us, 0.01% latency, 91.86 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 696.18 us, 0.00% latency, 111.05 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (11): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 235.32 ms, 1.54% latency, 986.49 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 278.23 us, 0.00% latency, 14.13 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 265.36 us, 0.00% latency, 14.82 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.84 ms, 0.03% latency, 16.03 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 615.36 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 574.11 us, 0.00% latency, 100.99 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 530.24 us, 0.00% latency, 36.45 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.69 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 782.73 us, 0.01% latency, 98.77 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 688.55 us, 0.00% latency, 112.28 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (12): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.61 ms, 1.53% latency, 989.46 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 273.7 us, 0.00% latency, 14.37 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 273.47 us, 0.00% latency, 14.38 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.09 ms, 0.03% latency, 15.22 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 867.84 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 596.05 us, 0.00% latency, 97.28 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 487.33 us, 0.00% latency, 39.66 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.91 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 783.21 us, 0.01% latency, 98.71 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 688.31 us, 0.00% latency, 112.32 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (13): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.09 ms, 1.53% latency, 991.67 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 272.75 us, 0.00% latency, 14.42 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 268.46 us, 0.00% latency, 14.65 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.06 ms, 0.03% latency, 15.32 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 831.37 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 566.48 us, 0.00% latency, 102.35 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 442.03 us, 0.00% latency, 43.72 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.68 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 784.16 us, 0.01% latency, 98.59 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 686.41 us, 0.00% latency, 112.63 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (14): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.47 ms, 1.53% latency, 994.28 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 274.66 us, 0.00% latency, 14.32 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 277.52 us, 0.00% latency, 14.17 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.01 ms, 0.03% latency, 15.48 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 905.99 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 554.56 us, 0.00% latency, 104.55 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 444.65 us, 0.00% latency, 43.47 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.34 ms, 0.93% latency, 1.09 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 772.95 us, 0.01% latency, 100.02 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 688.31 us, 0.00% latency, 112.32 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (15): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 232.78 ms, 1.52% latency, 997.25 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 258.45 us, 0.00% latency, 15.21 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 279.43 us, 0.00% latency, 14.07 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.97 ms, 0.03% latency, 15.59 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 767.47 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 654.22 us, 0.00% latency, 88.63 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 440.12 us, 0.00% latency, 43.91 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 141.73 ms, 0.93% latency, 1.09 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 843.76 us, 0.01% latency, 91.62 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 687.36 us, 0.00% latency, 112.47 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (16): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 235.08 ms, 1.54% latency, 987.48 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 254.39 us, 0.00% latency, 15.46 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 288.01 us, 0.00% latency, 13.65 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.11 ms, 0.03% latency, 15.17 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 713.11 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 632.05 us, 0.00% latency, 91.74 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 467.3 us, 0.00% latency, 41.36 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.13 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 884.06 us, 0.01% latency, 87.45 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 689.27 us, 0.00% latency, 112.16 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (17): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 235.73 ms, 1.54% latency, 984.78 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 285.39 us, 0.00% latency, 13.78 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 285.39 us, 0.00% latency, 13.78 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.94 ms, 0.03% latency, 15.69 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 732.18 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 638.01 us, 0.00% latency, 90.88 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 443.94 us, 0.00% latency, 43.54 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 144.41 ms, 0.94% latency, 1.07 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 874.28 us, 0.01% latency, 88.43 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 815.15 us, 0.01% latency, 94.84 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (18): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.02 ms, 1.53% latency, 991.97 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 292.3 us, 0.00% latency, 13.45 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 287.53 us, 0.00% latency, 13.68 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.01 ms, 0.03% latency, 15.48 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 790.12 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 576.02 us, 0.00% latency, 100.66 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 418.9 us, 0.00% latency, 46.14 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.67 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 793.7 us, 0.01% latency, 97.4 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 688.31 us, 0.00% latency, 112.32 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (19): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.52 ms, 1.53% latency, 994.11 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 283.96 us, 0.00% latency, 13.85 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 376.22 us, 0.00% latency, 10.45 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.21 ms, 0.03% latency, 14.86 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 830.65 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 615.12 us, 0.00% latency, 94.26 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 529.77 us, 0.00% latency, 36.48 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.24 ms, 0.93% latency, 1.09 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 787.73 us, 0.01% latency, 98.14 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 694.51 us, 0.00% latency, 111.31 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (20): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.94 ms, 1.53% latency, 992.32 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 268.22 us, 0.00% latency, 14.66 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 276.09 us, 0.00% latency, 14.24 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.94 ms, 0.03% latency, 15.69 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 789.4 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 567.67 us, 0.00% latency, 102.14 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 413.66 us, 0.00% latency, 46.72 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.49 ms, 0.93% latency, 1.09 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 785.59 us, 0.01% latency, 98.41 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 716.45 us, 0.00% latency, 107.91 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (21): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.68 ms, 1.54% latency, 989.17 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 296.59 us, 0.00% latency, 13.26 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 250.1 us, 0.00% latency, 15.72 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.36 ms, 0.04% latency, 14.47 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 780.34 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 569.58 us, 0.00% latency, 101.8 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 597.72 us, 0.00% latency, 32.34 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.55 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 785.83 us, 0.01% latency, 98.38 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 699.28 us, 0.00% latency, 110.56 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (22): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.86 ms, 1.53% latency, 992.64 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 272.75 us, 0.00% latency, 14.42 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 259.4 us, 0.00% latency, 15.16 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.95 ms, 0.03% latency, 15.67 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 784.87 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 570.06 us, 0.00% latency, 101.71 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 431.06 us, 0.00% latency, 44.84 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.33 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 795.36 us, 0.01% latency, 97.2 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 703.33 us, 0.00% latency, 109.92 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (23): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.9 ms, 1.53% latency, 992.48 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 241.99 us, 0.00% latency, 16.25 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 259.64 us, 0.00% latency, 15.14 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.01 ms, 0.03% latency, 15.47 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 874.52 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 558.38 us, 0.00% latency, 103.84 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 439.64 us, 0.00% latency, 43.96 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.82 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 781.3 us, 0.01% latency, 98.95 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 683.31 us, 0.00% latency, 113.14 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (24): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.8 ms, 1.54% latency, 988.68 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 237.46 us, 0.00% latency, 16.56 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 380.28 us, 0.00% latency, 10.34 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.02 ms, 0.03% latency, 15.45 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 772.48 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 565.05 us, 0.00% latency, 102.61 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 520.47 us, 0.00% latency, 37.13 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.06 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 804.42 us, 0.01% latency, 96.11 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 698.09 us, 0.00% latency, 110.74 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (25): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.74 ms, 1.54% latency, 988.92 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 250.58 us, 0.00% latency, 15.69 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 265.84 us, 0.00% latency, 14.79 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.01 ms, 0.03% latency, 15.47 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 881.2 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 558.61 us, 0.00% latency, 103.8 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 441.79 us, 0.00% latency, 43.75 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.11 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 780.34 us, 0.01% latency, 99.07 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 690.7 us, 0.00% latency, 111.93 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (26): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.55 ms, 1.53% latency, 993.95 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 272.04 us, 0.00% latency, 14.45 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 267.51 us, 0.00% latency, 14.7 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.96 ms, 0.03% latency, 15.62 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 760.56 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 570.06 us, 0.00% latency, 101.71 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 517.61 us, 0.00% latency, 37.34 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.59 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 778.44 us, 0.01% latency, 99.31 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 711.68 us, 0.00% latency, 108.63 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (27): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.13 ms, 1.53% latency, 991.5 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 267.74 us, 0.00% latency, 14.69 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 270.84 us, 0.00% latency, 14.52 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.98 ms, 0.03% latency, 15.55 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 871.42 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 567.2 us, 0.00% latency, 102.23 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 414.13 us, 0.00% latency, 46.67 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.74 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 784.4 us, 0.01% latency, 98.56 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 691.65 us, 0.00% latency, 111.77 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (28): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.22 ms, 1.53% latency, 991.11 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 247.0 us, 0.00% latency, 15.92 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 278.47 us, 0.00% latency, 14.12 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.94 ms, 0.03% latency, 15.7 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 766.99 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 664.95 us, 0.00% latency, 87.2 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 410.56 us, 0.00% latency, 47.08 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.09 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 873.33 us, 0.01% latency, 88.52 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 690.94 us, 0.00% latency, 111.89 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (29): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.97 ms, 1.53% latency, 992.19 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 265.6 us, 0.00% latency, 14.8 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 373.36 us, 0.00% latency, 10.53 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.84 ms, 0.03% latency, 16.02 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 780.11 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 569.82 us, 0.00% latency, 101.75 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 409.84 us, 0.00% latency, 47.16 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.64 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 785.83 us, 0.01% latency, 98.38 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 696.9 us, 0.00% latency, 110.93 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (30): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.18 ms, 1.53% latency, 991.27 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 243.43 us, 0.00% latency, 16.15 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 261.07 us, 0.00% latency, 15.06 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.13 ms, 0.03% latency, 15.12 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 746.01 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 659.7 us, 0.00% latency, 87.89 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 518.08 us, 0.00% latency, 37.31 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.05 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 782.01 us, 0.01% latency, 98.86 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 689.03 us, 0.00% latency, 112.2 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (31): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.61 ms, 1.53% latency, 993.71 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 255.82 us, 0.00% latency, 15.37 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 363.11 us, 0.00% latency, 10.83 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.01 ms, 0.03% latency, 15.47 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 747.92 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 567.67 us, 0.00% latency, 102.14 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 573.64 us, 0.00% latency, 33.69 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.18 ms, 0.93% latency, 1.09 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 782.49 us, 0.01% latency, 98.8 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 719.31 us, 0.00% latency, 107.48 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (32): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.35 ms, 1.53% latency, 994.83 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 248.43 us, 0.00% latency, 15.83 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 278.47 us, 0.00% latency, 14.12 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.11 ms, 0.03% latency, 15.16 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 788.21 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 565.29 us, 0.00% latency, 102.57 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 511.41 us, 0.00% latency, 37.79 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.56 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 799.42 us, 0.01% latency, 96.71 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 703.81 us, 0.00% latency, 109.84 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (33): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 411.32 ms, 2.69% latency, 564.38 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 183.07 ms, 1.20% latency, 21.48 MFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 252.72 us, 0.00% latency, 15.56 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.14 ms, 0.03% latency, 15.09 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 690.46 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 601.05 us, 0.00% latency, 96.47 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 518.56 us, 0.00% latency, 37.27 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 144.71 ms, 0.95% latency, 1.07 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 799.89 us, 0.01% latency, 96.65 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 707.39 us, 0.00% latency, 109.29 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (34): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.33 ms, 1.53% latency, 994.88 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 258.21 us, 0.00% latency, 15.23 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 405.55 us, 0.00% latency, 9.7 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.9 ms, 0.03% latency, 15.82 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 776.29 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 559.57 us, 0.00% latency, 103.62 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 429.87 us, 0.00% latency, 44.96 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.73 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 790.6 us, 0.01% latency, 97.79 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 705.0 us, 0.00% latency, 109.66 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (35): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.5 ms, 1.53% latency, 989.92 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 261.31 us, 0.00% latency, 15.05 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 271.56 us, 0.00% latency, 14.48 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.94 ms, 0.03% latency, 15.69 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 834.7 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 558.85 us, 0.00% latency, 103.75 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 428.68 us, 0.00% latency, 45.09 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.92 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 783.68 us, 0.01% latency, 98.65 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 689.98 us, 0.00% latency, 112.05 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (36): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.0 ms, 1.53% latency, 992.03 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 243.43 us, 0.00% latency, 16.15 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 257.97 us, 0.00% latency, 15.24 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.78 ms, 0.03% latency, 16.23 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 726.7 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 565.53 us, 0.00% latency, 102.53 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 430.82 us, 0.00% latency, 44.86 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.8 ms, 0.93% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 776.77 us, 0.01% latency, 99.53 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 688.79 us, 0.00% latency, 112.24 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (37): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.22 ms, 1.53% latency, 991.13 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 284.43 us, 0.00% latency, 13.82 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 274.18 us, 0.00% latency, 14.34 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.04 ms, 0.03% latency, 15.39 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 761.99 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 576.73 us, 0.00% latency, 100.54 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 520.71 us, 0.00% latency, 37.12 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 142.96 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 785.59 us, 0.01% latency, 98.41 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 706.43 us, 0.00% latency, 109.44 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (38): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.66 ms, 1.54% latency, 989.25 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 249.15 us, 0.00% latency, 15.78 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 249.86 us, 0.00% latency, 15.74 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.01 ms, 0.03% latency, 15.48 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 742.91 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 569.11 us, 0.00% latency, 101.88 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 506.88 us, 0.00% latency, 38.13 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 144.28 ms, 0.94% latency, 1.07 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 859.02 us, 0.01% latency, 90.0 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 706.2 us, 0.00% latency, 109.47 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (39): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.63 ms, 1.53% latency, 989.37 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 265.84 us, 0.00% latency, 14.79 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 259.4 us, 0.00% latency, 15.16 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 5.05 ms, 0.03% latency, 15.35 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 776.05 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 573.64 us, 0.00% latency, 101.08 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 513.55 us, 0.00% latency, 37.63 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.26 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 777.48 us, 0.01% latency, 99.44 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 696.66 us, 0.00% latency, 110.97 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (40): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.24 ms, 1.53% latency, 991.01 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 239.85 us, 0.00% latency, 16.39 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 261.31 us, 0.00% latency, 15.05 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.88 ms, 0.03% latency, 15.88 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 797.99 us, 0.01% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 567.2 us, 0.00% latency, 102.23 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 429.63 us, 0.00% latency, 44.99 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.12 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 778.2 us, 0.01% latency, 99.34 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 685.69 us, 0.00% latency, 112.75 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (41): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 234.66 ms, 1.54% latency, 989.25 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 240.09 us, 0.00% latency, 16.38 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 277.28 us, 0.00% latency, 14.18 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.85 ms, 0.03% latency, 15.99 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 690.46 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 658.99 us, 0.00% latency, 87.99 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 434.64 us, 0.00% latency, 44.47 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.53 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 889.54 us, 0.01% latency, 86.91 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 689.03 us, 0.00% latency, 112.2 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (42): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 233.7 ms, 1.53% latency, 993.33 GFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 249.62 us, 0.00% latency, 15.75 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 259.16 us, 0.00% latency, 15.17 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.85 ms, 0.03% latency, 16.0 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 742.91 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 565.05 us, 0.00% latency, 102.61 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 426.77 us, 0.00% latency, 45.29 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 143.14 ms, 0.94% latency, 1.08 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 784.4 us, 0.01% latency, 98.56 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 697.85 us, 0.00% latency, 110.78 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+      (43): GPTNeoXLayer(
+        0, 0.00% Params, 116.06 GMACs, 2.27% MACs, 69.5 ms, 0.45% latency, 3.34 TFLOPS, 
+        (input_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 243.66 us, 0.00% latency, 16.14 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (post_attention_layernorm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 360.97 us, 0.00% latency, 10.89 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+        (attention): GPTNeoXAttention(
+          0, 0.00% Params, 38.76 GMACs, 0.76% MACs, 4.9 ms, 0.03% latency, 15.83 TFLOPS, 
+          (rotary_emb): RotaryEmbedding(0, 0.00% Params, 0 MACs, 0.00% MACs, 686.17 us, 0.00% latency, 0.0 FLOPS, )
+          (query_key_value): Linear(0, 0.00% Params, 28.99 GMACs, 0.57% MACs, 571.25 us, 0.00% latency, 101.5 TFLOPS, in_features=6144, out_features=18432, bias=True)
+          (dense): Linear(0, 0.00% Params, 9.66 GMACs, 0.19% MACs, 536.2 us, 0.00% latency, 36.04 TFLOPS, in_features=6144, out_features=6144, bias=True)
+        )
+        (mlp): GPTNeoXMLP(
+          0, 0.00% Params, 77.31 GMACs, 1.51% MACs, 9.89 ms, 0.06% latency, 15.64 TFLOPS, 
+          (dense_h_to_4h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 795.6 us, 0.01% latency, 97.17 TFLOPS, in_features=6144, out_features=24576, bias=True)
+          (dense_4h_to_h): Linear(0, 0.00% Params, 38.65 GMACs, 0.76% MACs, 679.49 us, 0.00% latency, 113.78 TFLOPS, in_features=24576, out_features=6144, bias=True)
+          (act): FastGELUActivation(0, 0.00% Params, 0 MACs, 0.00% MACs, 92.09 ms, 0.60% latency, 0.0 FLOPS, )
+        )
+      )
+    )
+    (final_layer_norm): LayerNorm(0, 0.00% Params, 0 MACs, 0.00% MACs, 200.75 us, 0.00% latency, 19.59 GFLOPS, (6144,), eps=1e-05, elementwise_affine=True)
+  )
+  (fc1): Linear(0, 0.00% Params, 7.86 MMACs, 0.00% MACs, 862.12 us, 0.01% latency, 18.24 GFLOPS, in_features=786432, out_features=5, bias=True)
+)
+------------------------------------------------------------------------------
